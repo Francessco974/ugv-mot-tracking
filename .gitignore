@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+.venv/
+results/*.csv    # or don't ignore — see decision below
+*.egg-info/
