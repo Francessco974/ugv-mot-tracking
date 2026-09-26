@@ -1,4 +1,4 @@
-# scripts/t1_1_explore.py
+# scripts/t1_explore.py
 import os
 import numpy as np
 import pandas as pd
@@ -92,7 +92,7 @@ n_frames = int(cfg["Sequence"]["seqLength"])
 
 
 CONFIDENCE_THRESHOLD = 0.05
-IOU_THRESHOLD = 0.5
+IOU_THRESHOLD = 0.3
 
 
 bbox_cols = ['bb_left', 'bb_top', 'bb_width', 'bb_height']

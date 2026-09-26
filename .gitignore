@@ -3,3 +3,4 @@ __pycache__/
 .venv/
 results/*.csv    # or don't ignore — see decision below
 *.egg-info/
+utils.txt
