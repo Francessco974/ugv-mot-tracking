@@ -1,41 +1,5 @@
 # mot_tracking/kalman.py
-
 import numpy as np
-from mot_tracking.iou import compute_IoU, to_BB_coordinates, to_IoU_coordinates
-
-def to_kf_coordinates(bb_cordinates : np.ndarray):
-    """
-    Take np.array([left, up, width, height])
-    To   np.array([xc yc s_(area) r_(aspect ratio)])
-    """
-    xc = bb_cordinates[0] + bb_cordinates[2] / 2
-    yc = bb_cordinates[1] + bb_cordinates[3] / 2
-    s =  bb_cordinates[2] * bb_cordinates[3]
-    r =  bb_cordinates[2] / bb_cordinates[3]
-    return np.array([xc, yc, s, r], dtype=float)
-    
-    
-def from_kf_to_bb(kf_cordinates : np.ndarray):
-    """
-    Take np.array([xc yc s_(area) r_(aspect ratio)])
-    To   np.array([left, up, width, height])
-    """  
-    width =  np.sqrt(kf_cordinates[2] * kf_cordinates[3])
-    height = np.sqrt(kf_cordinates[2] / kf_cordinates[3])
-    
-    left = kf_cordinates[0] - width / 2
-    up = kf_cordinates[1] - height / 2
-    return np.array([left, up, width, height], dtype=float)
-
-
-
-def to_kf_from_IoU(IoU_coordinates):
-    return to_kf_coordinates(to_BB_coordinates(IoU_coordinates)) 
-
-def to_IoU_from_kf(IoU_coordinates):
-    return to_IoU_coordinates(from_kf_to_bb(IoU_coordinates)) 
-
-
 
 class SortKF:
     """

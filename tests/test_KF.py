@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
-from mot_tracking.kalman import SortKF, to_kf_coordinates, from_kf_to_bb
+from mot_tracking.kalman import SortKF
+from mot_tracking.boxes import tlwh_to_cxcysr, cxcysr_to_tlwh
 
 def test_KF_filter_no_noise():
 
@@ -56,8 +57,8 @@ def test_KF_filter_noise():
     
 def test_coordinates_transform():
     a = np.array([1,2,3,4], dtype=float)
-    assert(np.isclose(to_kf_coordinates(from_kf_to_bb(a)), a, atol = 0.05).all())
-    assert(np.isclose(from_kf_to_bb(to_kf_coordinates(a)), a, atol = 0.05).all())
+    assert(np.isclose(tlwh_to_cxcysr(cxcysr_to_tlwh(a)), a, atol = 0.05).all())
+    assert(np.isclose(cxcysr_to_tlwh(tlwh_to_cxcysr(a)), a, atol = 0.05).all())
     
     
 def test_coordinates_transform_one_way():
@@ -65,10 +66,10 @@ def test_coordinates_transform_one_way():
     bb = np.array([10.0, 20.0, 30.0, 40.0], dtype=float)
     # Expected: xc = 10 + 15 = 25, yc = 20 + 20 = 40, s = 30 * 40 = 1200, r = 30 / 40 = 0.75
     expected_kf = np.array([25.0, 40.0, 1200.0, 0.75], dtype=float)
-    assert np.isclose(to_kf_coordinates(bb), expected_kf, atol=1e-5).all()
+    assert np.isclose(tlwh_to_cxcysr(bb), expected_kf, atol=1e-5).all()
 
     # Test KF state -> bounding box: [xc, yc, s, r] -> [left, top, w, h]
     kf = np.array([25.0, 40.0, 1200.0, 0.75], dtype=float)
     # Expected: w = sqrt(1200 * 0.75) = 30, h = sqrt(1200 / 0.75) = 40, left = 25 - 15 = 10, top = 40 - 20 = 20
     expected_bb = np.array([10.0, 20.0, 30.0, 40.0], dtype=float)
-    assert np.isclose(from_kf_to_bb(kf), expected_bb, atol=1e-5).all()
+    assert np.isclose(cxcysr_to_tlwh(kf), expected_bb, atol=1e-5).all()

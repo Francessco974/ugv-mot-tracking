@@ -1,17 +1,6 @@
 # mot_tracking/iou.py
 import numpy as np
 
-def to_IoU_coordinates(bb_MOT_coordinates):
-    # [left, up, width, height]
-    left, up, width, height = bb_MOT_coordinates
-    return [left, up, left+width, up+height]
-
-def to_BB_coordinates(bb_IoU_coordinates):
-    # [x1 , y1 , x2, y2]
-    x1 , y1 , x2, y2 = bb_IoU_coordinates
-    return [x1, y1, x2-x1, y2-y1]
-
-
 
 def rectangle_area(corners):
     return max((corners[2]- corners[0]), 0.0) * max((corners[3]- corners[1]), 0.0)

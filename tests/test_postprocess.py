@@ -6,9 +6,11 @@ from mot_tracking.detect.postprocess import (
     unletterbox_boxes,
     clip_P1P2,
     decode,
-    from_center_to_bb,
-    from_bb_to_P1_P2,
+    
 )
+
+from mot_tracking.boxes import cxcywh_to_tlhw
+
 
 # -------------------------------------------------------------------------
 # 1. G1.1 Round-Trip Transformation Test
@@ -115,7 +117,7 @@ def test_center_to_bb_conversion():
     center_coords = np.array([100.0, 200.0, 40.0, 60.0], dtype=float)
     expected_bb = np.array([80.0, 170.0, 40.0, 60.0], dtype=float)
 
-    res = from_center_to_bb(center_coords)
+    res = cxcywh_to_tlhw(center_coords)
     np.testing.assert_allclose(res.flatten(), expected_bb)
 
 

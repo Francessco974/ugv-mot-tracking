@@ -1,43 +1,9 @@
 # mot_tracking/mot_tracking/detect/postprocess.py
 import numpy as np
-from mot_tracking.iou import to_IoU_coordinates, compute_IoU, to_BB_coordinates
+from mot_tracking.iou import compute_IoU
+from mot_tracking.boxes import cxcywh_to_tlhw, tlwh_to_xyxy
 
-
-
-def from_center_to_bb(center_coordinates: np.ndarray) -> np.ndarray:
-    """
-    Converts array of shape (4, N) or (4,) from [xc, yc, w, h] to [left, top, w, h].
-    """
-    xc, yc, w, h = center_coordinates[0], center_coordinates[1], center_coordinates[2], center_coordinates[3]
-    left = xc - w / 2.0
-    top = yc - h / 2.0
-    return np.array([left, top, w, h], dtype=float)
-
-def from_bb_to_P1_P2(MOT_coordinates : np.ndarray)-> np.ndarray:
-    
-    """
-    Converts array of shape (4, N) or (4,) from [left, up, w, h] to [x1, y1, x2, y2].
-    """
-    left, up, w, h = MOT_coordinates[0], MOT_coordinates[1], MOT_coordinates[2], MOT_coordinates[3]
-    x1 = left
-    x2 = left + w
-    y1 = up
-    y2 = up + h
-    return np.array([x1, y1, x2, y2], dtype=float)
-
-def from_P1_P2_to_BB(P1P2_coordinates : np.ndarray)-> np.ndarray:
-    
-    """
-    Converts array of shape (4, N) or (4,) from [x1, y1, x2, y2] to [left, up, w, h].
-    """
-    x1, y1, x2, y2 = P1P2_coordinates[0], P1P2_coordinates[1], P1P2_coordinates[2], P1P2_coordinates[3]
-    left = x1
-    up = y1
-    h = y2 - y1
-    w = x2 - x1
-    return np.array([left, up, w, h], dtype=float)
-    
-    
+   
 
 def decode (detector_output : np.ndarray, conf_threshold: float = 0.05):
     """
@@ -66,7 +32,7 @@ def decode (detector_output : np.ndarray, conf_threshold: float = 0.05):
     
     # Vectorized conversion from center (xc, yc, w, h) to top-left (left, top, w, h)
     if people_center_coord.shape[1] > 0: # if there are any people
-        people_bb = from_center_to_bb(people_center_coord)
+        people_bb = cxcywh_to_tlhw(people_center_coord.T).T # change shape to (N,4)
     else:
         people_bb = np.empty((4, 0), dtype=float)
         
@@ -83,7 +49,7 @@ def NMS(people_bb : np.ndarray, people_confidence : np.ndarray, IoU_threshold : 
         return np.empty((0, 5), dtype=float)
     
     
-    people_IoU = np.apply_along_axis(to_IoU_coordinates, axis=1, arr= people_bb.T)
+    people_IoU = tlwh_to_xyxy(people_bb.T)
     result = []
     counter = 0
     while len(people_IoU) > 0:
@@ -94,8 +60,8 @@ def NMS(people_bb : np.ndarray, people_confidence : np.ndarray, IoU_threshold : 
         
         iou = compute_IoU(people_IoU, np.reshape(candidate, (1, 4))).flatten()
         
-        candidate_P1P2 = np.append(from_bb_to_P1_P2(to_BB_coordinates(candidate)), confidence)
-        result.append(candidate_P1P2)
+
+        result.append(np.append((candidate), confidence))
         
         keep = iou < IoU_threshold
         people_IoU = people_IoU[keep]

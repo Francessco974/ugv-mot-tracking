@@ -4,8 +4,9 @@ import argparse
 import configparser
 import numpy as np
 import pandas as pd
-from mot_tracking.iou import to_IoU_coordinates
 from mot_tracking.tracker import run_tracker
+from mot_tracking.boxes import tlwh_to_xyxy
+
 
 
 def parse_args():
@@ -142,7 +143,7 @@ def main():
     dets = detections[detections["confidence_score"] > args.confidence_threshold]
 
     det_by_frame = {
-        int(f): np.array([to_IoU_coordinates(r) for r in g[bbox_cols].to_numpy()])
+        int(f): np.array([tlwh_to_xyxy(r) for r in g[bbox_cols].to_numpy()])
         for f, g in dets.groupby("frame_number")
     }
 

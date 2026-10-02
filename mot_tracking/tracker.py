@@ -2,8 +2,9 @@
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
-from mot_tracking.iou import compute_IoU, to_BB_coordinates, to_IoU_coordinates
-from mot_tracking.kalman import to_kf_coordinates, from_kf_to_bb, SortKF, to_kf_from_IoU, to_IoU_from_kf
+from mot_tracking.iou import compute_IoU
+from mot_tracking.kalman import SortKF
+from mot_tracking.boxes import xyxy_to_tlwh, cxcysr_to_tlwh, xyxy_to_cxcysr, cxcysr_to_xyxy
 
 
 # ── Matchers ───────────────────────────────────────────────────────────────
@@ -312,7 +313,7 @@ class EstimatorLifeManager:
 
         if self.use_kalman:
             self.localisation_estimator = SortKF(dt=1) # frame to frame, not frame to time
-            self.localisation_estimator.initiate(to_kf_from_IoU(measurement), P0)
+            self.localisation_estimator.initiate(xyxy_to_cxcysr(measurement), P0)
 
     def update(self, measurement: np.ndarray):
         """
@@ -324,7 +325,7 @@ class EstimatorLifeManager:
         self.last_measurement = measurement.copy()
 
         if self.use_kalman:
-            self.localisation_estimator.update(to_kf_from_IoU(measurement))
+            self.localisation_estimator.update(xyxy_to_cxcysr(measurement))
 
         if self.state == 'lost':                       # re-found after coasting
             self.state = 'confirmed'
@@ -339,7 +340,7 @@ class EstimatorLifeManager:
         self.age += 1
         if self.use_kalman:
             pred_kf = self.localisation_estimator.predict().copy()
-            self.current_prediction = to_IoU_from_kf(pred_kf)
+            self.current_prediction = cxcysr_to_xyxy(pred_kf)
         else:
             # No Kalman: dumb floor
             self.current_prediction = self.last_measurement.copy()
@@ -359,14 +360,14 @@ class EstimatorLifeManager:
         """Return bounding box in MOT coordinates"""
 
         if self.age > 0:
-            return to_BB_coordinates(self.current_prediction)
+            return xyxy_to_tlwh(self.current_prediction)
 
         # If matched age = 0
         if output_box_type == 'raw_det' or not self.use_kalman:
-            return to_BB_coordinates(self.last_measurement)
+            return xyxy_to_tlwh(self.last_measurement)
         elif output_box_type == 'prediction':
-            return to_BB_coordinates(self.current_prediction)
+            return xyxy_to_tlwh(self.current_prediction)
         elif output_box_type == 'posterior':
-            return from_kf_to_bb(self.localisation_estimator.state_[:4].tolist())
+            return cxcysr_to_tlwh(self.localisation_estimator.state_[:4].tolist())
         else:
             raise ValueError(f"output_box_type non valido: {output_box_type}")

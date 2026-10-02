@@ -4,9 +4,8 @@ import argparse
 import configparser
 import numpy as np
 import pandas as pd
-from mot_tracking.iou import to_IoU_coordinates
 from mot_tracking.tracker import run_tracker
-
+from mot_tracking.boxes import tlwh_to_xyxy
 
 def fmt(x):
     """0.35 -> '035' for folder names."""
@@ -155,7 +154,7 @@ def main():
     ]
 
     dets_high_by_frame = {
-        int(f): np.array([to_IoU_coordinates(r) for r in g[bbox_cols].to_numpy()])
+        int(f): np.array([tlwh_to_xyxy(r) for r in g[bbox_cols].to_numpy()])
         for f, g in dets_high.groupby("frame_number")
     }
     high_confidences_by_frame = {
@@ -163,7 +162,7 @@ def main():
         for f, g in dets_high.groupby("frame_number")
     }
     dets_low_by_frame = {
-        int(f): np.array([to_IoU_coordinates(r) for r in g[bbox_cols].to_numpy()])
+        int(f): np.array([tlwh_to_xyxy(r) for r in g[bbox_cols].to_numpy()])
         for f, g in dets_low.groupby("frame_number")
     }
 
