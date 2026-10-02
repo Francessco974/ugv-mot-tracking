@@ -7,7 +7,7 @@ def cxcywh_to_tlwh(cxcywh : np.ndarray) -> np.ndarray:
     Converts array of shape (N, 4) or (4,) from [xc, yc, w, h] to [left, top, w, h].
     """
     
-    cxcywh = np.asanyarray(cxcywh, dtype=float)
+    cxcywh = np.asarray(cxcywh, dtype=float)
     
     
     # Extract coordinates along the last axis (-1) to work for both 1D and 2D
@@ -24,7 +24,7 @@ def tlwh_to_xyxy(tlwh : np.ndarray) -> np.ndarray:
     Converts array of shape (N, 4) or (4,) from [left, top, w, h] to [x1, y1, x2, y2].
     """
     
-    tlwh = np.asanyarray(tlwh, dtype=float)
+    tlwh = np.asarray(tlwh, dtype=float)
     
     left = tlwh[..., 0]
     up = tlwh[..., 1]
@@ -41,7 +41,7 @@ def xyxy_to_tlwh(xyxy : np.ndarray) -> np.ndarray:
     Converts array of shape (N, 4) or (4,) from [x1, y1, x2, y2] to [left, top, w, h].
     """
     
-    xyxy = np.asanyarray(xyxy, dtype=float)
+    xyxy = np.asarray(xyxy, dtype=float)
     
     x1 = xyxy[..., 0]
     y1 = xyxy[..., 1]
@@ -58,7 +58,7 @@ def tlwh_to_cxcysr(tlwh : np.ndarray) -> np.ndarray:
     Converts array of shape (N, 4) or (4,) from [left, top, w, h] to [xc yc s_(area) r_(aspect ratio)].
     """
     
-    tlwh = np.asanyarray(tlwh, dtype=float)
+    tlwh = np.asarray(tlwh, dtype=float)
     
     left = tlwh[..., 0]
     up = tlwh[..., 1]
@@ -69,9 +69,9 @@ def tlwh_to_cxcysr(tlwh : np.ndarray) -> np.ndarray:
     yc = up + height / 2.0
     s =  width * height
     
-    # Prevent division by zero (0.0 / 0.0 gives NaN)
-    safe_height = np.where(height == 0, 1e-6, height)
-    r = width / safe_height
+    if np.any(width <= 0) or np.any(height <= 0):
+        raise ValueError("Degenerate box: should have been removed upstream")
+    r = width / height
 
     return np.stack([xc, yc, s, r], axis=-1)
 
@@ -80,20 +80,18 @@ def cxcysr_to_tlwh(cxcysr : np.ndarray) -> np.ndarray:
     Converts array of shape (N, 4) or (4,) from [xc yc s_(area) r_(aspect ratio)] to [left, top, w, h].
     """
     
-    cxcysr = np.asanyarray(cxcysr, dtype=float)
+    cxcysr = np.asarray(cxcysr, dtype=float)
     
     cx = cxcysr[..., 0]
     cy = cxcysr[..., 1]
     s = cxcysr[..., 2]
     r = cxcysr[..., 3]
     
-    # Clip negative values for area and ratio before np.sqrt
-    s = np.maximum(s, 0.0)
-    safe_r = np.maximum(r, 1e-6)
-    
-    w = np.sqrt(s * safe_r)
-    h = np.sqrt(s / safe_r)
-
+    if np.any(s < 0) or np.any(r <= 0):
+        raise ValueError("Invalid state: s < 0 or r <= 0")
+        
+    w = np.sqrt(s * r)
+    h = np.sqrt(s / r)
 
     left = cx - w / 2.0
     top   = cy - h / 2.0
@@ -111,6 +109,16 @@ def cxcysr_to_xyxy(cxcysr : np.ndarray) -> np.ndarray:
     Converts array of shape (N, 4) or (4,) from [xc yc s_(area) r_(aspect ratio)] to [x1, y1, x2, y2].
     """
     return  tlwh_to_xyxy(tlwh=cxcysr_to_tlwh(cxcysr))
+
+def cxcywh_to_xyxy(cxcywh):
+    """
+    Converts array of shape (N, 4) or (4,) from [xc, yc, w, h] to [x1, y1, x2, y2].
+    """
+    return tlwh_to_xyxy(cxcywh_to_tlwh(cxcywh))
+
+
+
+
 
 
 # from mot_tracking.boxes import cxcywh_to_tlwh, tlwh_to_xyxy, xyxy_to_tlwh, tlwh_to_cxcysr, cxcysr_to_tlwh, xyxy_to_cxcysr, cxcysr_to_xyxy

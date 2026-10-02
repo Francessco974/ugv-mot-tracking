@@ -125,7 +125,8 @@ def test_decode_yolo_tensor():
     """Verify decoding YOLO tensor for person class thresholding."""
     dummy_detector_out = np.zeros((1, 84, 8400), dtype=float)
 
-    # Setup anchor 0: xc=100, yc=100, w=20, h=40 -> left = 100 - 10 = 90, top = 100 - 20 = 80
+    # Setup anchor 0: xc=100, yc=100, w=20, h=40
+    # x1 = 100 - 10 = 90, y1 = 100 - 20 = 80, x2 = 100 + 10 = 110, y2 = 100 + 20 = 120
     dummy_detector_out[0, 0:4, 0] = [100.0, 100.0, 20.0, 40.0]
     dummy_detector_out[0, 4, 0] = 0.80  # Class 0 score (person)
 
@@ -137,5 +138,9 @@ def test_decode_yolo_tensor():
 
     assert len(confs) == 1
     assert confs[0] == 0.80
-    # left = 90.0, top = 80.0, w = 20.0, h = 40.0
-    np.testing.assert_allclose(boxes[:, 0], [90.0, 80.0, 20.0, 40.0])
+    
+    # Check shape (N, 4) -> (1, 4)
+    assert boxes.shape == (1, 4)
+
+    # Expected xyxy coordinates: [x1, y1, x2, y2]
+    np.testing.assert_allclose(boxes[0], [90.0, 80.0, 110.0, 120.0])

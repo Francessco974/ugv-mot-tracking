@@ -2,12 +2,9 @@
 import numpy as np
 
 
-def rectangle_area(corners):
-    return max((corners[2]- corners[0]), 0.0) * max((corners[3]- corners[1]), 0.0)
-
-
 def compute_IoU (A, B):
-    
+    if A.ndim != 2 or A.shape[1] != 4: raise ValueError(f"A must be (N, 4), got {A.shape}")
+    if B.ndim != 2 or B.shape[1] != 4: raise ValueError(f"B must be (N, 4), got {B.shape}")
     # Expand dims for broadcasting: (N, 1, 4) and (1, M, 4)
     A_exp = A[:, np.newaxis, :]  # Shape: (N, 1, 4)
     B_exp = B[np.newaxis, :, :]  # Shape: (1, M, 4)
@@ -41,9 +38,16 @@ def compute_IoU (A, B):
     # Union Areas: (N, M)
     union_areas = A_areas + B_areas - inter_areas
     
-    # Avoid division by zero when union_areas is 0
-    return np.where(union_areas > 0, inter_areas / union_areas, 0.0)
     
+    out = np.zeros_like(inter_areas)
+    np.divide(
+        inter_areas,
+        union_areas,
+        out=out,
+        where=union_areas > 0
+    )
+
+    return out
     
     
     

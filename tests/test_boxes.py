@@ -50,7 +50,6 @@ def test_roundtrip_tlwh_and_xyxy(sample_boxes):
 
 def test_roundtrip_xyxy_and_tlwh(sample_boxes):
     """Verifies that xyxy -> tlwh -> xyxy recovers original boxes."""
-    # Convert base sample from tlwh to xyxy first
     initial_xyxy = tlwh_to_xyxy(sample_boxes)
     
     tlwh = xyxy_to_tlwh(initial_xyxy)
@@ -97,12 +96,12 @@ def test_roundtrip_cxcysr_and_xyxy(sample_boxes):
 # ---------------------------------------------------------------------------
 
 def test_cxcywh_to_tlwh_values():
-    """Validates specific numerical calculations for cxcywh -> tlwh."""
+    """Validates specific numerical calculations for cxcywh -> tlhw."""
     cxcywh = np.array([50.0, 60.0, 20.0, 40.0])  # [xc, yc, w, h]
-    expected_tlwh = np.array([40.0, 40.0, 20.0, 40.0])  # [left, top, w, h]
+    expected_tlhw = np.array([40.0, 40.0, 20.0, 40.0])  # [left, top, w, h]
     
     output = cxcywh_to_tlwh(cxcywh)
-    np.testing.assert_allclose(output, expected_tlwh)
+    np.testing.assert_allclose(output, expected_tlhw)
 
 
 def test_tlwh_to_cxcysr_values():
@@ -113,6 +112,15 @@ def test_tlwh_to_cxcysr_values():
     
     output = tlwh_to_cxcysr(tlwh)
     np.testing.assert_allclose(output, expected_cxcysr)
+
+
+def test_cxcysr_to_tlwh_values():
+    """Validates conversion from cxcysr [25, 40, 1200, 0.75] to tlwh [10, 20, 30, 40]."""
+    cxcysr = np.array([25.0, 40.0, 1200.0, 0.75])
+    expected_tlwh = np.array([10.0, 20.0, 30.0, 40.0])
+
+    output = cxcysr_to_tlwh(cxcysr)
+    np.testing.assert_allclose(output, expected_tlwh)
 
 
 def test_preserve_shapes():
@@ -128,16 +136,32 @@ def test_preserve_shapes():
 
 
 # ---------------------------------------------------------------------------
-# Edge Cases & Zero Division Safety
+# Contract, Empty Frames & Invalid Input Validation
 # ---------------------------------------------------------------------------
 
-def test_zero_height_and_width_edge_cases():
-    """Verifies functions do not crash or emit warnings on zero-sized bounding boxes."""
-    zero_box = np.array([10.0, 20.0, 0.0, 0.0])
-    
-    # Should execute without throwing ZeroDivisionError or generating NaNs
-    cxcysr = tlwh_to_cxcysr(zero_box)
-    assert not np.isnan(cxcysr).any()
+def test_invalid_cxcysr_and_tlwh_raises():
+    """Verifies that invalid or zero-dimension bounding boxes raise ValueError according to contract."""
+    with pytest.raises(ValueError):
+        tlwh_to_cxcysr(np.array([10.0, 20.0, 50.0, 0.0]))
 
-    tlwh = cxcysr_to_tlwh(cxcysr)
-    assert not np.isnan(tlwh).any()
+    with pytest.raises(ValueError):
+        cxcysr_to_tlwh(np.array([0.0, 0.0, -1.0, 1.0]))
+
+
+@pytest.mark.parametrize(
+    "func",
+    [
+        cxcywh_to_tlwh,
+        tlwh_to_xyxy,
+        xyxy_to_tlwh,
+        tlwh_to_cxcysr,
+        cxcysr_to_tlwh,
+        xyxy_to_cxcysr,
+        cxcysr_to_xyxy,
+    ],
+)
+def test_empty_input_shape_preservation(func):
+    """Verifies that passing an empty array of shape (0, 4) returns an empty array of shape (0, 4)."""
+    empty_arr = np.empty((0, 4), dtype=float)
+    result = func(empty_arr)
+    assert result.shape == (0, 4)
