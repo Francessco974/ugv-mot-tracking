@@ -4,3 +4,8 @@ __pycache__/
 results/*.csv    # or don't ignore — see decision below
 *.egg-info/
 utils.txt
+scripts/t3_check_invariants.py
+.gitignore
+scripts/t3_official_bytetrack.py
+scripts/t3_evaluate_detector.py
+scripts/visualize_UGREEN_image.py
