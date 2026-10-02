@@ -1,7 +1,7 @@
 # mot_tracking/mot_tracking/detect/postprocess.py
 import numpy as np
 from mot_tracking.iou import compute_IoU
-from mot_tracking.boxes import cxcywh_to_tlhw, tlwh_to_xyxy
+from mot_tracking.boxes import cxcywh_to_tlwh, tlwh_to_xyxy
 
    
 
@@ -32,7 +32,7 @@ def decode (detector_output : np.ndarray, conf_threshold: float = 0.05):
     
     # Vectorized conversion from center (xc, yc, w, h) to top-left (left, top, w, h)
     if people_center_coord.shape[1] > 0: # if there are any people
-        people_bb = cxcywh_to_tlhw(people_center_coord.T).T # change shape to (N,4)
+        people_bb = cxcywh_to_tlwh(people_center_coord.T).T # change shape to (N,4)
     else:
         people_bb = np.empty((4, 0), dtype=float)
         

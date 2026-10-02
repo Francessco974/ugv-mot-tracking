@@ -9,7 +9,7 @@ from mot_tracking.detect.postprocess import (
     
 )
 
-from mot_tracking.boxes import cxcywh_to_tlhw
+from mot_tracking.boxes import cxcywh_to_tlwh
 
 
 # -------------------------------------------------------------------------
@@ -117,7 +117,7 @@ def test_center_to_bb_conversion():
     center_coords = np.array([100.0, 200.0, 40.0, 60.0], dtype=float)
     expected_bb = np.array([80.0, 170.0, 40.0, 60.0], dtype=float)
 
-    res = cxcywh_to_tlhw(center_coords)
+    res = cxcywh_to_tlwh(center_coords)
     np.testing.assert_allclose(res.flatten(), expected_bb)
 
 

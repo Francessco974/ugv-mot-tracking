@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 from mot_tracking.boxes import (
-    cxcywh_to_tlhw,
+    cxcywh_to_tlwh,
     tlwh_to_xyxy,
     xyxy_to_tlwh,
     tlwh_to_cxcysr,
@@ -96,13 +96,13 @@ def test_roundtrip_cxcysr_and_xyxy(sample_boxes):
 # Specific Value & Output Shape Verification
 # ---------------------------------------------------------------------------
 
-def test_cxcywh_to_tlhw_values():
-    """Validates specific numerical calculations for cxcywh -> tlhw."""
+def test_cxcywh_to_tlwh_values():
+    """Validates specific numerical calculations for cxcywh -> tlwh."""
     cxcywh = np.array([50.0, 60.0, 20.0, 40.0])  # [xc, yc, w, h]
-    expected_tlhw = np.array([40.0, 40.0, 20.0, 40.0])  # [left, top, w, h]
+    expected_tlwh = np.array([40.0, 40.0, 20.0, 40.0])  # [left, top, w, h]
     
-    output = cxcywh_to_tlhw(cxcywh)
-    np.testing.assert_allclose(output, expected_tlhw)
+    output = cxcywh_to_tlwh(cxcywh)
+    np.testing.assert_allclose(output, expected_tlwh)
 
 
 def test_tlwh_to_cxcysr_values():
@@ -120,8 +120,8 @@ def test_preserve_shapes():
     single_1d = np.array([10.0, 20.0, 30.0, 40.0])
     batch_2d = np.array([[10.0, 20.0, 30.0, 40.0], [5.0, 5.0, 10.0, 10.0]])
 
-    assert cxcywh_to_tlhw(single_1d).shape == (4,)
-    assert cxcywh_to_tlhw(batch_2d).shape == (2, 4)
+    assert cxcywh_to_tlwh(single_1d).shape == (4,)
+    assert cxcywh_to_tlwh(batch_2d).shape == (2, 4)
 
     assert tlwh_to_xyxy(single_1d).shape == (4,)
     assert tlwh_to_xyxy(batch_2d).shape == (2, 4)

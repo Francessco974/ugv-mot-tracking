@@ -2,7 +2,7 @@
 import numpy as np
 
 
-def cxcywh_to_tlhw(cxcywh : np.ndarray) -> np.ndarray:
+def cxcywh_to_tlwh(cxcywh : np.ndarray) -> np.ndarray:
     """
     Converts array of shape (N, 4) or (4,) from [xc, yc, w, h] to [left, top, w, h].
     """
@@ -113,4 +113,4 @@ def cxcysr_to_xyxy(cxcysr : np.ndarray) -> np.ndarray:
     return  tlwh_to_xyxy(tlwh=cxcysr_to_tlwh(cxcysr))
 
 
-# from mot_tracking.boxes import cxcywh_to_tlhw, tlwh_to_xyxy, xyxy_to_tlwh, tlwh_to_cxcysr, cxcysr_to_tlwh, xyxy_to_cxcysr, cxcysr_to_xyxy
+# from mot_tracking.boxes import cxcywh_to_tlwh, tlwh_to_xyxy, xyxy_to_tlwh, tlwh_to_cxcysr, cxcysr_to_tlwh, xyxy_to_cxcysr, cxcysr_to_xyxy
